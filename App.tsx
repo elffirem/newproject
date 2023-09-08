@@ -31,7 +31,7 @@ const App = () => {
   const [titles, setTitles] = useState<Array<string>>([]);
  
   async function getData(endPoint: string): Promise<any> {
-    return axios.get(`https://rickandmortyapi.com/api/`+endPoint)
+    return axios.get(`https://rickandmortyapi.com/api/${endPoint}`)
       .then(response => { return response.data.results })
       .catch(error => { console.log("error"); return [] });
   }
