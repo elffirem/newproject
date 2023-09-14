@@ -1,20 +1,14 @@
-import { ImageBackground, ScrollView, Text, View } from "react-native";
-import styles from "./styles";
-import Container from "./components/Container";
-import {useState,useEffect} from 'react'
-import axios from "axios";
+import { ImageBackground, ScrollView, Text, View } from 'react-native';
+import styles from './styles';
+import Container from './components/Container';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const path = require('./assets/pic.jpg');
 const background = require('./assets/wallpaper.jpg');
 
-const data = [
-  {title: 'Title', subtitle1: 'Subtitle1', subtitle2: 'Subtitle2', image: path},
-  {title: 'Title', subtitle1: 'Subtitle1', subtitle2: 'Subtitle2', image: path},
-  {title: 'Title', subtitle1: 'Subtitle1', subtitle2: 'Subtitle2', image: path},
-  {title: 'Title', subtitle1: 'Subtitle1', subtitle2: 'Subtitle2', image: path},
-  {title: 'Title', subtitle1: 'Subtitle1', subtitle2: 'Subtitle2', image: path},
-  {title: 'Title', subtitle1: 'Subtitle1', subtitle2: 'Subtitle2', image: path},
-]; //dummy data
+const data = Array(6).fill(
+  { title: 'Title', subtitle1: 'Subtitle1', subtitle2: 'Subtitle2', image: path }); //dummy data
 
 function RickAndMortyHeader() {
   return (
@@ -24,61 +18,55 @@ function RickAndMortyHeader() {
   );
 }
 
-
-
-
 const App = () => {
-  const [titles, setTitles] = useState<Array<string>>([]);
- 
-  async function getData(endPoint: string): Promise<any> {
-    return axios.get(`https://rickandmortyapi.com/api/`+endPoint)
-      .then(response => { return response.data.results })
-      .catch(error => { console.log("error"); return [] });
+  const [names, setNames] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [episodes, setEpisodes] = useState([]);
+
+  async function getData(endpoint:string) {
+    try {
+      console.log("haaalo")
+      const response = await axios.get(`https://rickandmortyapi.com/api/${endpoint}`);
+      console.log("helo")
+      return response.data.results;
+    } catch (error) {
+      console.error(`Error fetching data from ${endpoint}: `, error);
+      return [];
+    }
   }
 
   useEffect(() => {
-    async function loadTitles() {
-      const response = await getData('character');
+    const loadDataSequentially = async () => {
+      const characterData = await getData('character');
+      const locationData = await getData('location');
+      const episodeData = await getData('episode');
+  
+      setNames(characterData.map((item:any) => item?.name || 'Error'));
+      setLocations(locationData.map((item:any) => item?.name || 'Error'));
+      setEpisodes(episodeData.map((item:any) => item?.name || 'Error'));
+    };
 
-      const newTitles: string[] = [];
-      for (const character of response) {
-        if (character && character.name) {
-          newTitles.push(character.name);
-        } else {
-          newTitles.push('Error');
-        }
-      }
-      setTitles(newTitles);
-    }
-    
-    loadTitles();
-  }, []); 
+    loadDataSequentially();
+  }, []);
 
   return (
     <View style={styles.container}>
       <RickAndMortyHeader />
       <ImageBackground source={background} style={styles.imageBackground}>
         <ScrollView>
-          {
-            data.map((item, index) => (
-              <Container
-                key={index}
-                title={titles[index] || 'Loading...'}
-                subtitle1={item.subtitle1}
-                subtitle2={item.subtitle2}
-                image={item.image}
-              />
-            ))
-          }
+          {data.map((item, index) => (
+            <Container
+              key={index}
+              title={names[index] || 'Loading...'}
+              subtitle1={locations[index] || 'Loading...'}
+              subtitle2={episodes[index] || 'Loading...'}
+              image={item.image}
+            />
+          ))}
         </ScrollView>
       </ImageBackground>
     </View>
   );
-}
-
-
-
-
-
+};
 
 export default App;
